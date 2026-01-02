@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walking Distance Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🚶 Walking Distance Tracker</h1>
+            <p class="date" id="todayDate"></p>
+        </header>
+
+        <!-- Location Search Input -->
+        <div class="search-section">
+            <div class="search-container">
+                <input
+                    type="text"
+                    id="locationInput"
+                    placeholder="Search for a location..."
+                    autocomplete="off"
+                />
+                <div id="autocompleteDropdown" class="autocomplete-dropdown hidden"></div>
+            </div>
+        </div>
+
+        <!-- Distance Summary -->
+        <div class="distance-summary" id="distanceSummary">
+            <div class="distance-value">
+                <span class="distance-number" id="totalDistance">0.00</span>
+                <span class="distance-unit">miles</span>
+            </div>
+            <div class="distance-label">Total Walking Distance</div>
+        </div>
+
+        <!-- Map Preview -->
+        <div class="map-section">
+            <h2>Route Map</h2>
+            <div id="map" class="map-container"></div>
+        </div>
+
+        <!-- Location List -->
+        <div class="locations-section">
+            <h2>Today's Locations</h2>
+            <div id="locationsList" class="locations-list empty">
+                <p class="empty-message">No locations added yet. Start by searching for a location above.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
