@@ -35,6 +35,74 @@ header h1 {
     opacity: 0.9;
 }
 
+/* Day Selector */
+.day-selector-section {
+    margin-bottom: 30px;
+}
+
+.day-selector {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px;
+    scrollbar-width: thin;
+}
+
+.day-selector::-webkit-scrollbar {
+    height: 6px;
+}
+
+.day-selector::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.day-button {
+    flex: 0 0 auto;
+    min-width: 70px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 12px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+    font-size: 0.85rem;
+}
+
+.day-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+.day-button.active {
+    background: white;
+    color: #667eea;
+    border-color: white;
+    font-weight: 600;
+}
+
+.day-button-weekday {
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.9;
+}
+
+.day-button-date {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.day-button-month {
+    font-size: 0.7rem;
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
 /* Search Section */
 .search-section {
     margin-bottom: 30px;
@@ -108,6 +176,14 @@ header h1 {
     padding: 14px 16px;
     text-align: center;
     color: #666;
+}
+
+.autocomplete-error {
+    padding: 14px 16px;
+    text-align: center;
+    color: #dc3545;
+    background: #ffe6e6;
+    font-weight: 500;
 }
 
 /* Distance Summary */
@@ -280,6 +356,15 @@ header h1 {
     }
 
     .date {
+        font-size: 1rem;
+    }
+
+    .day-button {
+        min-width: 60px;
+        padding: 10px 6px;
+    }
+
+    .day-button-date {
         font-size: 1rem;
     }
 

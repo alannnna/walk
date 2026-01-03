@@ -12,8 +12,15 @@
         <!-- Header -->
         <header>
             <h1>🚶 Walking Distance Tracker</h1>
-            <p class="date" id="todayDate"></p>
+            <p class="date" id="selectedDate"></p>
         </header>
+
+        <!-- Day Selector -->
+        <div class="day-selector-section">
+            <div class="day-selector" id="daySelector">
+                <!-- Days will be populated by JavaScript -->
+            </div>
+        </div>
 
         <!-- Location Search Input -->
         <div class="search-section">
@@ -45,7 +52,7 @@
 
         <!-- Location List -->
         <div class="locations-section">
-            <h2>Today's Locations</h2>
+            <h2>Locations</h2>
             <div id="locationsList" class="locations-list empty">
                 <p class="empty-message">No locations added yet. Start by searching for a location above.</p>
             </div>

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(uv venv:*)",
       "Bash(uv run:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(cat:*)"
     ]
   }
 }

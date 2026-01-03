@@ -4,24 +4,86 @@ let searchTimeout = null;
 let map = null;
 let markers = [];
 let routeLine = null;
+let selectedDate = null;
 
 // Constants
 const KM_TO_MILES = 0.621371;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    displayTodayDate();
+    // Set selected date to today by default
+    selectedDate = formatDate(new Date());
+
     initializeMap();
-    loadTodaysLocations();
+    renderDaySelector();
+    updateSelectedDateDisplay();
+    loadLocationsForDate(selectedDate);
     setupEventListeners();
 });
 
-// Display today's date
-function displayTodayDate() {
-    const dateElement = document.getElementById('todayDate');
-    const today = new Date();
+// Format date as YYYY-MM-DD
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Get last N days including today
+function getLastNDays(n) {
+    const days = [];
+    for (let i = n - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        days.push(date);
+    }
+    return days;
+}
+
+// Render day selector buttons
+function renderDaySelector() {
+    const daySelector = document.getElementById('daySelector');
+    const last7Days = getLastNDays(7);
+
+    daySelector.innerHTML = '';
+
+    last7Days.forEach(date => {
+        const dateStr = formatDate(date);
+        const button = document.createElement('button');
+        button.className = 'day-button';
+        if (dateStr === selectedDate) {
+            button.classList.add('active');
+        }
+
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+        const dayNum = date.getDate();
+        const month = date.toLocaleDateString('en-US', { month: 'short' });
+
+        button.innerHTML = `
+            <div class="day-button-weekday">${weekday}</div>
+            <div class="day-button-date">${dayNum}</div>
+            <div class="day-button-month">${month}</div>
+        `;
+
+        button.addEventListener('click', () => selectDate(dateStr));
+        daySelector.appendChild(button);
+    });
+}
+
+// Select a date
+function selectDate(dateStr) {
+    selectedDate = dateStr;
+    renderDaySelector(); // Re-render to update active state
+    updateSelectedDateDisplay();
+    loadLocationsForDate(dateStr);
+}
+
+// Update the selected date display in header
+function updateSelectedDateDisplay() {
+    const dateElement = document.getElementById('selectedDate');
+    const date = new Date(selectedDate + 'T00:00:00');
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    dateElement.textContent = today.toLocaleDateString('en-US', options);
+    dateElement.textContent = date.toLocaleDateString('en-US', options);
 }
 
 // Setup event listeners
@@ -74,10 +136,15 @@ async function searchLocations(query) {
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         const results = await response.json();
 
-        displayAutocompleteResults(results);
+        // Check if response is an error
+        if (results.error) {
+            displayAutocompleteError(results.error);
+        } else {
+            displayAutocompleteResults(results);
+        }
     } catch (error) {
         console.error('Search error:', error);
-        hideAutocomplete();
+        displayAutocompleteError('Network error - please try again');
     }
 }
 
@@ -85,6 +152,13 @@ async function searchLocations(query) {
 function showAutocompleteLoading() {
     const dropdown = document.getElementById('autocompleteDropdown');
     dropdown.innerHTML = '<div class="autocomplete-loading">Searching...</div>';
+    dropdown.classList.remove('hidden');
+}
+
+// Display autocomplete error
+function displayAutocompleteError(errorMessage) {
+    const dropdown = document.getElementById('autocompleteDropdown');
+    dropdown.innerHTML = `<div class="autocomplete-error">Error: ${escapeHtml(errorMessage)}</div>`;
     dropdown.classList.remove('hidden');
 }
 
@@ -136,29 +210,35 @@ async function selectLocation(location) {
 // Add location via API
 async function addLocation(location) {
     try {
+        // Include the selected date in the request
+        const locationData = {
+            ...location,
+            date: selectedDate
+        };
+
         const response = await fetch('/api/locations', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(location)
+            body: JSON.stringify(locationData)
         });
 
         const result = await response.json();
 
         if (result.success) {
             // Reload locations to get updated list and distance
-            await loadTodaysLocations();
+            await loadLocationsForDate(selectedDate);
         }
     } catch (error) {
         console.error('Add location error:', error);
     }
 }
 
-// Load today's locations
-async function loadTodaysLocations() {
+// Load locations for a specific date
+async function loadLocationsForDate(dateStr) {
     try {
-        const response = await fetch('/api/locations/today');
+        const response = await fetch(`/api/locations/${dateStr}`);
         const data = await response.json();
 
         locations = data.locations;
@@ -279,7 +359,7 @@ async function deleteLocation(locationId) {
 
         if (result.success) {
             // Reload locations to get updated list and distance
-            await loadTodaysLocations();
+            await loadLocationsForDate(selectedDate);
         }
     } catch (error) {
         console.error('Delete location error:', error);

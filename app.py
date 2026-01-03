@@ -108,15 +108,13 @@ def search_locations():
     except:
         return jsonify([])
 
-@app.route('/api/locations/today')
-def get_todays_locations():
-    """Get all locations for today with total walking distance"""
-    today = date.today().isoformat()
-
+@app.route('/api/locations/<date_str>')
+def get_locations_by_date(date_str):
+    """Get all locations for a specific date with total walking distance"""
     conn = get_db_connection()
     locations = conn.execute(
         'SELECT * FROM locations WHERE date = ? ORDER BY sequence_order',
-        (today,)
+        (date_str,)
     ).fetchall()
     conn.close()
 
@@ -143,15 +141,15 @@ def get_todays_locations():
 
 @app.route('/api/locations', methods=['POST'])
 def add_location():
-    """Add a new location for today"""
+    """Add a new location for a specific date"""
     data = request.json
-    today = date.today().isoformat()
+    location_date = data.get('date', date.today().isoformat())
 
-    # Get the next sequence order for today
+    # Get the next sequence order for this date
     conn = get_db_connection()
     max_order = conn.execute(
         'SELECT MAX(sequence_order) as max_order FROM locations WHERE date = ?',
-        (today,)
+        (location_date,)
     ).fetchone()
 
     next_order = (max_order['max_order'] or -1) + 1
@@ -161,7 +159,7 @@ def add_location():
         INSERT INTO locations (date, name, display_name, latitude, longitude, sequence_order)
         VALUES (?, ?, ?, ?, ?, ?)
     ''', (
-        today,
+        location_date,
         data['name'],
         data.get('display_name', ''),
         data['latitude'],
