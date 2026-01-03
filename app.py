@@ -91,7 +91,8 @@ def search_locations():
     }
 
     try:
-        response = requests.get(url, params=params, headers=headers, timeout=6)
+        response = requests.get(url, params=params, headers=headers, timeout=30)
+        response.raise_for_status()  # Raise an error for HTTP errors
         results = response.json()
 
         # Format results for frontend

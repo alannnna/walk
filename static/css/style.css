@@ -110,10 +110,13 @@ header h1 {
 
 .search-container {
     position: relative;
+    display: flex;
+    gap: 8px;
 }
 
 #locationInput {
     width: 100%;
+    flex: 1;
     padding: 16px;
     font-size: 1rem;
     border: none;
@@ -125,6 +128,30 @@ header h1 {
 
 #locationInput:focus {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.search-button {
+    padding: 16px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-button:hover {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.search-button:active {
+    transform: scale(0.98);
 }
 
 /* Autocomplete Dropdown */
@@ -374,6 +401,11 @@ header h1 {
 
     .distance-unit {
         font-size: 1.2rem;
+    }
+
+    .search-button {
+        padding: 16px;
+        font-size: 0.9rem;
     }
 
     .map-container {

@@ -1,6 +1,5 @@
 // Global state
 let locations = [];
-let searchTimeout = null;
 let map = null;
 let markers = [];
 let routeLine = null;
@@ -89,11 +88,44 @@ function updateSelectedDateDisplay() {
 // Setup event listeners
 function setupEventListeners() {
     const input = document.getElementById('locationInput');
-    input.addEventListener('input', handleSearchInput);
+    const searchButton = document.getElementById('searchButton');
+
+    // Search on Enter key
+    input.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            triggerSearch();
+        }
+    });
+
+    // Search on button click
+    searchButton.addEventListener('click', () => {
+        triggerSearch();
+    });
+
+    // Hide autocomplete when clicking outside
     input.addEventListener('blur', () => {
         // Delay hiding to allow click events on dropdown items
         setTimeout(() => hideAutocomplete(), 200);
     });
+}
+
+// Trigger search
+function triggerSearch() {
+    const input = document.getElementById('locationInput');
+    const query = input.value.trim();
+
+    // Check minimum length
+    if (query.length < 3) {
+        displayAutocompleteError('Please enter at least 3 characters');
+        return;
+    }
+
+    // Show loading state
+    showAutocompleteLoading();
+
+    // Search
+    searchLocations(query);
 }
 
 // Initialize map
@@ -106,28 +138,6 @@ function initializeMap() {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
-}
-
-// Handle search input with debouncing
-function handleSearchInput(event) {
-    const query = event.target.value.trim();
-
-    // Clear previous timeout
-    clearTimeout(searchTimeout);
-
-    // Hide dropdown if query is too short
-    if (query.length < 3) {
-        hideAutocomplete();
-        return;
-    }
-
-    // Show loading state
-    showAutocompleteLoading();
-
-    // Debounce the search
-    searchTimeout = setTimeout(() => {
-        searchLocations(query);
-    }, 300);
 }
 
 // Search locations via API
