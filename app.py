@@ -91,7 +91,7 @@ def search_locations():
     }
 
     try:
-        response = requests.get(url, params=params, headers=headers, timeout=10)
+        response = requests.get(url, params=params, headers=headers, timeout=6)
         results = response.json()
 
         # Format results for frontend
@@ -105,8 +105,8 @@ def search_locations():
             })
 
         return jsonify(formatted_results)
-    except:
-        return jsonify([])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/locations/<date_str>')
 def get_locations_by_date(date_str):
