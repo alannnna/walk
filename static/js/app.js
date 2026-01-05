@@ -4,6 +4,7 @@ let map = null;
 let markers = [];
 let routeLine = null;
 let selectedDate = null;
+let tempMarker = null;  // Temporary marker for map clicks
 
 // Constants
 const KM_TO_MILES = 0.621371;
@@ -138,6 +139,75 @@ function initializeMap() {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
+
+    // Add click handler for adding locations by clicking on map
+    map.on('click', onMapClick);
+}
+
+// Handle map click to add location
+async function onMapClick(e) {
+    const lat = e.latlng.lat;
+    const lon = e.latlng.lng;
+
+    // Remove previous temporary marker if it exists
+    if (tempMarker) {
+        map.removeLayer(tempMarker);
+        tempMarker = null;
+    }
+
+    // Create temporary marker
+    tempMarker = L.marker([lat, lon]).addTo(map);
+    tempMarker.bindPopup('<div class="map-popup-loading">Looking up location...</div>').openPopup();
+
+    // Reverse geocode to get location name
+    try {
+        const location = await reverseGeocode(lat, lon);
+
+        // Update popup with location info and add button
+        const popupContent = `
+            <div class="map-popup-content">
+                <div class="map-popup-name">${escapeHtml(location.name)}</div>
+                <div class="map-popup-address">${escapeHtml(location.display_name)}</div>
+                <button class="map-popup-add-btn" onclick="addLocationFromMap(${lat}, ${lon}, '${escapeHtml(location.name).replace(/'/g, "\\'")}', '${escapeHtml(location.display_name).replace(/'/g, "\\'")}')">
+                    Add Location
+                </button>
+            </div>
+        `;
+        tempMarker.setPopupContent(popupContent);
+    } catch (error) {
+        console.error('Reverse geocode error:', error);
+        tempMarker.setPopupContent('<div class="map-popup-error">Could not find location information</div>');
+    }
+}
+
+// Reverse geocode coordinates to get location name
+async function reverseGeocode(lat, lon) {
+    const response = await fetch(`/api/reverse-geocode?lat=${lat}&lon=${lon}`);
+
+    if (!response.ok) {
+        throw new Error('Reverse geocode failed');
+    }
+
+    return await response.json();
+}
+
+// Add location from map click
+async function addLocationFromMap(lat, lon, name, displayName) {
+    const location = {
+        latitude: lat,
+        longitude: lon,
+        name: name,
+        display_name: displayName
+    };
+
+    // Remove temporary marker
+    if (tempMarker) {
+        map.removeLayer(tempMarker);
+        tempMarker = null;
+    }
+
+    // Add the location
+    await addLocation(location);
 }
 
 // Search locations via API

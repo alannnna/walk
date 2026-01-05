@@ -127,6 +127,28 @@ def index():
     """Serve the main HTML page"""
     return render_template('index.html')
 
+@app.route('/api/reverse-geocode')
+def reverse_geocode():
+    """Reverse geocode coordinates to get location name"""
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
+
+    if not lat or not lon:
+        return jsonify({'error': 'lat and lon parameters required'}), 400
+
+    try:
+        lat = float(lat)
+        lon = float(lon)
+
+        if GEOCODING_PROVIDER == 'mapbox':
+            return reverse_geocode_mapbox(lon, lat)
+        else:
+            return reverse_geocode_nominatim(lon, lat)
+    except ValueError:
+        return jsonify({'error': 'Invalid lat/lon values'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/search')
 def search_locations():
     """Search locations via configured geocoding provider (Mapbox or Nominatim)"""
@@ -223,6 +245,62 @@ def search_nominatim(query, user_lat=None, user_lon=None):
         })
 
     return jsonify(formatted_results)
+
+def reverse_geocode_mapbox(lon, lat):
+    """Reverse geocode using Mapbox API"""
+    if not MAPBOX_TOKEN:
+        raise Exception('Mapbox token not configured. Set MAPBOX_TOKEN environment variable.')
+
+    url = f'https://api.mapbox.com/geocoding/v5/mapbox.places/{lon},{lat}.json'
+    params = {
+        'access_token': MAPBOX_TOKEN,
+        'limit': 1
+    }
+
+    response = requests.get(url, params=params, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+
+    features = data.get('features', [])
+    if features:
+        feature = features[0]
+        coords = feature.get('geometry', {}).get('coordinates', [])
+        if len(coords) >= 2:
+            return jsonify({
+                'name': feature.get('text', ''),
+                'display_name': feature.get('place_name', ''),
+                'latitude': coords[1],
+                'longitude': coords[0]
+            })
+
+    return jsonify({'error': 'No location found'}), 404
+
+def reverse_geocode_nominatim(lon, lat):
+    """Reverse geocode using Nominatim API"""
+    url = 'https://nominatim.openstreetmap.org/reverse'
+    params = {
+        'lat': lat,
+        'lon': lon,
+        'format': 'json',
+        'addressdetails': 1
+    }
+    headers = {
+        'User-Agent': 'WalkingDistanceTracker/1.0'
+    }
+
+    response = requests.get(url, params=params, headers=headers, timeout=30)
+    response.raise_for_status()
+    result = response.json()
+
+    if 'error' not in result:
+        return jsonify({
+            'name': result.get('name', result.get('display_name', '').split(',')[0]),
+            'display_name': result.get('display_name', ''),
+            'latitude': float(result.get('lat')),
+            'longitude': float(result.get('lon'))
+        })
+
+    return jsonify({'error': 'No location found'}), 404
 
 @app.route('/api/locations/<date_str>')
 def get_locations_by_date(date_str):

@@ -372,6 +372,60 @@ header h1 {
     transform: scale(0.98);
 }
 
+/* Map Popup Styles */
+.map-popup-content {
+    min-width: 200px;
+    padding: 8px;
+}
+
+.map-popup-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+.map-popup-address {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.map-popup-add-btn {
+    width: 100%;
+    padding: 10px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.9rem;
+}
+
+.map-popup-add-btn:hover {
+    background: #5568d3;
+}
+
+.map-popup-add-btn:active {
+    transform: scale(0.98);
+}
+
+.map-popup-loading {
+    padding: 12px;
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.map-popup-error {
+    padding: 12px;
+    text-align: center;
+    color: #dc3545;
+    font-size: 0.9rem;
+}
+
 /* Mobile Responsive */
 @media (max-width: 640px) {
     body {
