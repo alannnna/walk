@@ -13,7 +13,55 @@ app = Flask(__name__)
 
 # Configuration
 GEOCODING_PROVIDER = os.getenv('GEOCODING_PROVIDER', 'mapbox').lower()  # 'mapbox' or 'nominatim'
+print("geocoding provider is ", GEOCODING_PROVIDER)
 MAPBOX_TOKEN = os.getenv('MAPBOX_TOKEN', '')
+
+# IP Geolocation cache (in-memory cache for IP -> lat/lon lookups)
+ip_location_cache = {}
+
+def get_public_ip():
+    """Get the server's public IP address for development on localhost"""
+    try:
+        response = requests.get('https://api.ipify.org?format=json', timeout=2)
+        if response.status_code == 200:
+            return response.json()['ip']
+    except:
+        pass
+    return None
+
+def get_location_from_ip(ip_address):
+    """
+    Get approximate location (lat/lon) from IP address using ipapi.co
+    Results are cached in memory to avoid repeated lookups
+    Returns: (latitude, longitude) tuple or (None, None) if lookup fails
+    """
+    # Check cache first
+    if ip_address in ip_location_cache:
+        return ip_location_cache[ip_address]
+
+    # Skip localhost and private IPs
+    if ip_address in ['127.0.0.1', 'localhost'] or ip_address.startswith('192.168.'):
+        return (None, None)
+
+    try:
+        # Use ipapi.co free service (1000 requests/day, no API key needed)
+        response = requests.get(f'https://ipapi.co/{ip_address}/json/', timeout=2)
+        if response.status_code == 200:
+            data = response.json()
+            lat = data.get('latitude')
+            lon = data.get('longitude')
+
+            if lat and lon:
+                # Cache the result (keep in memory for this session)
+                ip_location_cache[ip_address] = (lat, lon)
+                return (lat, lon)
+    except:
+        # If geo lookup fails, continue without proximity
+        pass
+
+    # Cache the failure too (avoid repeated failed lookups)
+    ip_location_cache[ip_address] = (None, None)
+    return (None, None)
 
 # Database initialization
 def init_db():
@@ -88,15 +136,26 @@ def search_locations():
         return jsonify([])
 
     try:
+        # Get user's approximate location from IP for proximity biasing
+        client_ip = request.remote_addr
+
+        # On localhost, get the actual public IP for development testing
+        if client_ip in ['127.0.0.1', 'localhost', '::1']:
+            public_ip = get_public_ip()
+            if public_ip:
+                client_ip = public_ip
+
+        user_lat, user_lon = get_location_from_ip(client_ip)
+
         if GEOCODING_PROVIDER == 'mapbox':
-            return search_mapbox(query)
+            return search_mapbox(query, user_lat, user_lon)
         else:
-            return search_nominatim(query)
+            return search_nominatim(query, user_lat, user_lon)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def search_mapbox(query):
-    """Search using Mapbox Geocoding API"""
+def search_mapbox(query, user_lat=None, user_lon=None):
+    """Search using Mapbox Geocoding API with optional proximity biasing"""
     if not MAPBOX_TOKEN:
         raise Exception('Mapbox token not configured. Set MAPBOX_TOKEN environment variable.')
 
@@ -106,6 +165,10 @@ def search_mapbox(query):
         'limit': 5,
         'autocomplete': True
     }
+
+    # Add proximity parameter if user location is available (biases results toward user)
+    if user_lat is not None and user_lon is not None:
+        params['proximity'] = f"{user_lon},{user_lat}"  # Mapbox uses lon,lat order
 
     response = requests.get(url, params=params, timeout=10)
     response.raise_for_status()
@@ -126,8 +189,8 @@ def search_mapbox(query):
 
     return jsonify(formatted_results)
 
-def search_nominatim(query):
-    """Search using Nominatim API"""
+def search_nominatim(query, user_lat=None, user_lon=None):
+    """Search using Nominatim API with optional proximity biasing"""
     url = 'https://nominatim.openstreetmap.org/search'
     params = {
         'q': query,
@@ -135,6 +198,12 @@ def search_nominatim(query):
         'addressdetails': 1,
         'limit': 5
     }
+
+    # Add proximity biasing if user location is available
+    # Note: this doesn't seem to make any difference in the search results
+    if user_lat is not None and user_lon is not None:
+        params['q'] += f" {user_lat},{user_lon}"
+
     headers = {
         'User-Agent': 'WalkingDistanceTracker/1.0'
     }
