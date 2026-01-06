@@ -2,7 +2,7 @@
 let locations = [];
 let map = null;
 let markers = [];
-let routeLine = null;
+let routeLines = [];  // Array of route segments
 let selectedDate = null;
 let tempMarker = null;  // Temporary marker for map clicks
 
@@ -324,7 +324,7 @@ async function loadLocationsForDate(dateStr) {
         locations = data.locations;
         displayLocations(locations);
         displayDistance(data.total_distance);
-        updateMap(locations, data.route_geometry);
+        updateMap(locations, data.route_geometries);
     } catch (error) {
         console.error('Load locations error:', error);
     }
@@ -347,6 +347,12 @@ function displayLocations(locations) {
         const item = document.createElement('div');
         item.className = 'location-item';
 
+        const isLastLocation = index === locations.length - 1;
+        const hasBreakAfter = location.break_after === 1;
+
+        // Show break indicator if this location has a break after it
+        const breakIndicator = hasBreakAfter ? '<div class="break-indicator">↓ Break ↓</div>' : '';
+
         item.innerHTML = `
             <div class="location-info">
                 <span class="location-number">${index + 1}</span>
@@ -355,10 +361,21 @@ function displayLocations(locations) {
                     <div class="location-address">${escapeHtml(location.display_name)}</div>
                 </div>
             </div>
-            <button class="delete-btn" onclick="deleteLocation(${location.id})">Delete</button>
+            <div class="location-actions">
+                ${!isLastLocation ? `<button class="break-btn ${hasBreakAfter ? 'active' : ''}" onclick="toggleBreakAfter(${location.id}, ${hasBreakAfter ? 0 : 1})">${hasBreakAfter ? 'Remove Break' : 'Break After'}</button>` : ''}
+                <button class="delete-btn" onclick="deleteLocation(${location.id})">Delete</button>
+            </div>
         `;
 
         listElement.appendChild(item);
+
+        // Add break indicator after the location item if there's a break
+        if (hasBreakAfter && !isLastLocation) {
+            const breakDiv = document.createElement('div');
+            breakDiv.className = 'break-indicator-line';
+            breakDiv.innerHTML = '- - - Break - - -';
+            listElement.appendChild(breakDiv);
+        }
     });
 }
 
@@ -369,15 +386,13 @@ function displayDistance(distanceKm) {
     distanceElement.textContent = distanceMiles.toFixed(2);
 }
 
-// Update map with locations and route
-function updateMap(locations, routeGeometry) {
-    // Clear existing markers and route
+// Update map with locations and route segments
+function updateMap(locations, routeGeometries) {
+    // Clear existing markers and routes
     markers.forEach(marker => map.removeLayer(marker));
     markers = [];
-    if (routeLine) {
-        map.removeLayer(routeLine);
-        routeLine = null;
-    }
+    routeLines.forEach(line => map.removeLayer(line));
+    routeLines = [];
 
     // If no locations, reset map
     if (locations.length === 0) {
@@ -397,34 +412,60 @@ function updateMap(locations, routeGeometry) {
         markers.push(marker);
     });
 
-    // Draw actual walking route from OSRM geometry
-    if (routeGeometry && routeGeometry.coordinates) {
-        // Convert GeoJSON coordinates [lon, lat] to Leaflet format [lat, lon]
-        const routeLatLngs = routeGeometry.coordinates.map(coord => [coord[1], coord[0]]);
+    // Draw actual walking routes from Mapbox geometries (multiple segments)
+    if (routeGeometries && routeGeometries.length > 0) {
+        let allBounds = [];
 
-        routeLine = L.polyline(routeLatLngs, {
-            color: '#667eea',
-            weight: 4,
-            opacity: 0.7
-        }).addTo(map);
+        routeGeometries.forEach(routeGeometry => {
+            if (routeGeometry && routeGeometry.coordinates) {
+                // Convert GeoJSON coordinates [lon, lat] to Leaflet format [lat, lon]
+                const routeLatLngs = routeGeometry.coordinates.map(coord => [coord[1], coord[0]]);
 
-        // Fit map bounds to show the route
-        const bounds = routeLine.getBounds();
-        map.fitBounds(bounds, { padding: [50, 50] });
+                const routeLine = L.polyline(routeLatLngs, {
+                    color: '#667eea',
+                    weight: 4,
+                    opacity: 0.7
+                }).addTo(map);
+
+                routeLines.push(routeLine);
+                allBounds.push(...routeLatLngs);
+            }
+        });
+
+        // Fit map bounds to show all route segments
+        if (allBounds.length > 0) {
+            const bounds = L.latLngBounds(allBounds);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
     } else if (latLngs.length > 1) {
-        // Fallback: draw straight lines if no route geometry available
-        routeLine = L.polyline(latLngs, {
-            color: '#667eea',
-            weight: 4,
-            opacity: 0.7,
-            dashArray: '5, 10'  // Dashed to indicate it's not the actual route
-        }).addTo(map);
-
+        // Fallback: if no route geometries, just center on markers
         const bounds = L.latLngBounds(latLngs);
         map.fitBounds(bounds, { padding: [50, 50] });
     } else if (latLngs.length === 1) {
         // Single location, just center on it
         map.setView(latLngs[0], 13);
+    }
+}
+
+// Toggle break after location
+async function toggleBreakAfter(locationId, breakAfter) {
+    try {
+        const response = await fetch(`/api/locations/${locationId}/break`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ break_after: breakAfter })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Reload locations to get updated list and distance
+            await loadLocationsForDate(selectedDate);
+        }
+    } catch (error) {
+        console.error('Toggle break error:', error);
     }
 }
 

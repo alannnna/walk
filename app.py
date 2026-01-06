@@ -77,9 +77,19 @@ def init_db():
                     latitude REAL NOT NULL,
                     longitude REAL NOT NULL,
                     sequence_order INTEGER NOT NULL,
+                    break_after INTEGER DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
+
+            # Migrate existing database: add break_after column if it doesn't exist
+            try:
+                cursor.execute('ALTER TABLE locations ADD COLUMN break_after INTEGER DEFAULT 0')
+                conn.commit()
+            except sqlite3.OperationalError:
+                # Column already exists, ignore
+                pass
+
             conn.commit()
 
 def get_db_connection():
@@ -87,6 +97,45 @@ def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
+
+def calculate_walking_distance_with_breaks(locations):
+    """
+    Calculate total walking distance handling break_after flags.
+    Splits locations into segments and calculates distance for each.
+    locations: list of {latitude, longitude, break_after} dicts in order
+    Returns: tuple of (total distance in km, list of route geometries)
+    """
+    if len(locations) < 2:
+        return 0, []
+
+    # Split locations into segments based on break_after flags
+    segments = []
+    current_segment = []
+
+    for i, loc in enumerate(locations):
+        current_segment.append(loc)
+
+        # If this location has break_after=1, or it's the last location, end the segment
+        if loc.get('break_after', 0) == 1 or i == len(locations) - 1:
+            if len(current_segment) >= 2:
+                segments.append(current_segment)
+            elif len(current_segment) == 1 and i == len(locations) - 1 and len(segments) > 0:
+                # Single location at end - add to last segment if we have segments
+                segments[-1].append(current_segment[0])
+            current_segment = []
+
+    # Calculate distance and geometry for each segment
+    total_distance = 0
+    route_geometries = []
+
+    for segment in segments:
+        if len(segment) >= 2:
+            distance, geometry = calculate_walking_distance(segment)
+            total_distance += distance
+            if geometry:
+                route_geometries.append(geometry)
+
+    return total_distance, route_geometries
 
 def calculate_walking_distance(locations):
     """
@@ -363,16 +412,17 @@ def get_locations_by_date(date_str):
             'display_name': loc['display_name'],
             'latitude': loc['latitude'],
             'longitude': loc['longitude'],
-            'sequence_order': loc['sequence_order']
+            'sequence_order': loc['sequence_order'],
+            'break_after': loc['break_after']
         })
 
-    # Calculate total distance and route geometry using OSRM
-    total_distance, route_geometry = calculate_walking_distance(locations_list)
+    # Calculate total distance and route geometry (handling segments)
+    total_distance, route_geometries = calculate_walking_distance_with_breaks(locations_list)
 
     return jsonify({
         'locations': locations_list,
         'total_distance': total_distance,
-        'route_geometry': route_geometry
+        'route_geometries': route_geometries
     })
 
 @app.route('/api/locations', methods=['POST'])
@@ -418,6 +468,19 @@ def delete_location(location_id):
     """Delete a location"""
     conn = get_db_connection()
     conn.execute('DELETE FROM locations WHERE id = ?', (location_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'success': True})
+
+@app.route('/api/locations/<int:location_id>/break', methods=['PUT'])
+def toggle_break_after(location_id):
+    """Toggle break_after flag for a location"""
+    data = request.json
+    break_after = data.get('break_after', 0)
+
+    conn = get_db_connection()
+    conn.execute('UPDATE locations SET break_after = ? WHERE id = ?', (break_after, location_id))
     conn.commit()
     conn.close()
 
