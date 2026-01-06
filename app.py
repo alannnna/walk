@@ -90,7 +90,49 @@ def get_db_connection():
 
 def calculate_walking_distance(locations):
     """
-    Calculate total walking distance using OSRM routing API.
+    Calculate total walking distance using Mapbox Directions API.
+    locations: list of {latitude, longitude} dicts in order
+    Returns: tuple of (distance in km, route geometry)
+    """
+    if len(locations) < 2:
+        return 0, None
+
+    if not MAPBOX_TOKEN:
+        # Fallback to OSRM if no Mapbox token
+        return calculate_walking_distance_osrm(locations)
+
+    # Build coordinates string: lon1,lat1;lon2,lat2;...
+    coords = ';'.join([f"{loc['longitude']},{loc['latitude']}" for loc in locations])
+
+    # Mapbox Directions API endpoint (walking profile)
+    url = f"https://api.mapbox.com/directions/v5/mapbox/walking/{coords}"
+    params = {
+        'access_token': MAPBOX_TOKEN,
+        'overview': 'full',
+        'geometries': 'geojson'
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        data = response.json()
+
+        if data.get('code') == 'Ok' and data.get('routes'):
+            # Distance in meters, convert to km
+            distance_meters = data['routes'][0]['distance']
+            distance_km = round(distance_meters / 1000, 2)
+
+            # Get route geometry (GeoJSON coordinates)
+            geometry = data['routes'][0]['geometry']
+
+            return distance_km, geometry
+        else:
+            return 0, None
+    except:
+        return 0, None
+
+def calculate_walking_distance_osrm(locations):
+    """
+    Fallback: Calculate walking distance using OSRM routing API.
     locations: list of {latitude, longitude} dicts in order
     Returns: tuple of (distance in km, route geometry)
     """
