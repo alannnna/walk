@@ -519,12 +519,13 @@ header h1 {
     .location-actions {
         margin-top: 12px;
         width: 100%;
-        flex-direction: column;
     }
 
     .break-btn,
     .delete-btn {
-        width: 100%;
+        flex: 1;
+        font-size: 0.85rem;
+        padding: 10px 12px;
     }
 }
 
