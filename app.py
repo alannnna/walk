@@ -90,6 +90,15 @@ def init_db():
                 # Column already exists, ignore
                 pass
 
+            # Create day_notes table for daily notes
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS day_notes (
+                    date TEXT PRIMARY KEY,
+                    note TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
             conn.commit()
 
 def get_db_connection():
@@ -481,6 +490,38 @@ def toggle_break_after(location_id):
 
     conn = get_db_connection()
     conn.execute('UPDATE locations SET break_after = ? WHERE id = ?', (break_after, location_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'success': True})
+
+@app.route('/api/notes/<date_str>', methods=['GET'])
+def get_day_note(date_str):
+    """Get note for a specific date"""
+    conn = get_db_connection()
+    note_row = conn.execute(
+        'SELECT note FROM day_notes WHERE date = ?',
+        (date_str,)
+    ).fetchone()
+    conn.close()
+
+    note = note_row['note'] if note_row else ''
+    return jsonify({'note': note})
+
+@app.route('/api/notes/<date_str>', methods=['PUT'])
+def update_day_note(date_str):
+    """Update note for a specific date"""
+    data = request.json
+    note = data.get('note', '')
+
+    conn = get_db_connection()
+
+    # Use INSERT OR REPLACE to handle both create and update
+    conn.execute('''
+        INSERT OR REPLACE INTO day_notes (date, note, updated_at)
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+    ''', (date_str, note))
+
     conn.commit()
     conn.close()
 

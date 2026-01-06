@@ -5,6 +5,7 @@ let markers = [];
 let routeLines = [];  // Array of route segments
 let selectedDate = null;
 let tempMarker = null;  // Temporary marker for map clicks
+let saveNoteTimeout = null;  // Debounce timer for note auto-save
 
 // Constants
 const KM_TO_MILES = 0.621371;
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderDaySelector();
     updateSelectedDateDisplay();
     loadLocationsForDate(selectedDate);
+    loadDayNote(selectedDate);
     setupEventListeners();
 });
 
@@ -76,6 +78,7 @@ function selectDate(dateStr) {
     renderDaySelector(); // Re-render to update active state
     updateSelectedDateDisplay();
     loadLocationsForDate(dateStr);
+    loadDayNote(dateStr);
 }
 
 // Update the selected date display in header
@@ -90,6 +93,7 @@ function updateSelectedDateDisplay() {
 function setupEventListeners() {
     const input = document.getElementById('locationInput');
     const searchButton = document.getElementById('searchButton');
+    const noteInput = document.getElementById('dayNote');
 
     // Search on Enter key
     input.addEventListener('keypress', (event) => {
@@ -108,6 +112,14 @@ function setupEventListeners() {
     input.addEventListener('blur', () => {
         // Delay hiding to allow click events on dropdown items
         setTimeout(() => hideAutocomplete(), 200);
+    });
+
+    // Auto-save note with debouncing
+    noteInput.addEventListener('input', () => {
+        clearTimeout(saveNoteTimeout);
+        saveNoteTimeout = setTimeout(() => {
+            saveDayNote(noteInput.value);
+        }, 500); // Wait 500ms after user stops typing
     });
 }
 
@@ -484,6 +496,34 @@ async function deleteLocation(locationId) {
         }
     } catch (error) {
         console.error('Delete location error:', error);
+    }
+}
+
+// Load day note
+async function loadDayNote(dateStr) {
+    try {
+        const response = await fetch(`/api/notes/${dateStr}`);
+        const data = await response.json();
+
+        const noteInput = document.getElementById('dayNote');
+        noteInput.value = data.note || '';
+    } catch (error) {
+        console.error('Load note error:', error);
+    }
+}
+
+// Save day note
+async function saveDayNote(note) {
+    try {
+        await fetch(`/api/notes/${selectedDate}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ note: note })
+        });
+    } catch (error) {
+        console.error('Save note error:', error);
     }
 }
 
