@@ -5,16 +5,29 @@ from datetime import date
 from contextlib import closing
 import os
 from dotenv import load_dotenv
+from flask_httpauth import HTTPBasicAuth
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
 
 # Configuration
 GEOCODING_PROVIDER = os.getenv('GEOCODING_PROVIDER', 'mapbox').lower()  # 'mapbox' or 'nominatim'
 print("geocoding provider is ", GEOCODING_PROVIDER)
 MAPBOX_TOKEN = os.getenv('MAPBOX_TOKEN', '')
+
+# Authentication credentials from environment variables
+AUTH_USERNAME = os.getenv('AUTH_USERNAME', 'admin')
+AUTH_PASSWORD = os.getenv('AUTH_PASSWORD', 'changeme')
+
+@auth.verify_password
+def verify_password(username, password):
+    """Verify username and password for HTTP Basic Auth"""
+    if username == AUTH_USERNAME and password == AUTH_PASSWORD:
+        return username
+    return None
 
 # IP Geolocation cache (in-memory cache for IP -> lat/lon lookups)
 ip_location_cache = {}
@@ -223,11 +236,13 @@ def calculate_walking_distance_osrm(locations):
         return 0, None
 
 @app.route('/')
+@auth.login_required
 def index():
     """Serve the main HTML page"""
     return render_template('index.html')
 
 @app.route('/api/reverse-geocode')
+@auth.login_required
 def reverse_geocode():
     """Reverse geocode coordinates to get location name"""
     lat = request.args.get('lat')
@@ -250,6 +265,7 @@ def reverse_geocode():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/search')
+@auth.login_required
 def search_locations():
     """Search locations via configured geocoding provider (Mapbox or Nominatim)"""
     query = request.args.get('q', '')
@@ -403,6 +419,7 @@ def reverse_geocode_nominatim(lon, lat):
     return jsonify({'error': 'No location found'}), 404
 
 @app.route('/api/locations/<date_str>')
+@auth.login_required
 def get_locations_by_date(date_str):
     """Get all locations for a specific date with total walking distance"""
     conn = get_db_connection()
@@ -435,6 +452,7 @@ def get_locations_by_date(date_str):
     })
 
 @app.route('/api/locations', methods=['POST'])
+@auth.login_required
 def add_location():
     """Add a new location for a specific date"""
     data = request.json
@@ -473,6 +491,7 @@ def add_location():
     })
 
 @app.route('/api/locations/<int:location_id>', methods=['DELETE'])
+@auth.login_required
 def delete_location(location_id):
     """Delete a location"""
     conn = get_db_connection()
@@ -483,6 +502,7 @@ def delete_location(location_id):
     return jsonify({'success': True})
 
 @app.route('/api/locations/<int:location_id>/break', methods=['PUT'])
+@auth.login_required
 def toggle_break_after(location_id):
     """Toggle break_after flag for a location"""
     data = request.json
@@ -496,6 +516,7 @@ def toggle_break_after(location_id):
     return jsonify({'success': True})
 
 @app.route('/api/notes/<date_str>', methods=['GET'])
+@auth.login_required
 def get_day_note(date_str):
     """Get note for a specific date"""
     conn = get_db_connection()
@@ -509,6 +530,7 @@ def get_day_note(date_str):
     return jsonify({'note': note})
 
 @app.route('/api/notes/<date_str>', methods=['PUT'])
+@auth.login_required
 def update_day_note(date_str):
     """Update note for a specific date"""
     data = request.json
