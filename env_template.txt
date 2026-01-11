@@ -1,0 +1,12 @@
+# Copy this file to .env and populate the fields with a real token and whatever you want
+
+# Geocoding Provider Configuration
+# Options: 'mapbox' or 'nominatim'
+GEOCODING_PROVIDER=mapbox
+
+# Mapbox API Token
+# Get your free token at: https://account.mapbox.com/access-tokens/
+MAPBOX_TOKEN=mycooltoken
+
+AUTH_USERNAME=mycoolusername
+AUTH_PASSWORD=mycoolpassword
