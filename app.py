@@ -18,6 +18,10 @@ GEOCODING_PROVIDER = os.getenv('GEOCODING_PROVIDER', 'mapbox').lower()  # 'mapbo
 print("geocoding provider is ", GEOCODING_PROVIDER)
 MAPBOX_TOKEN = os.getenv('MAPBOX_TOKEN', '')
 
+# Database path - use persistent volume if available
+DATABASE_PATH = os.getenv('DATABASE_PATH', 'database.db')
+print(f"Using database at: {DATABASE_PATH}")
+
 # Authentication credentials from environment variables
 AUTH_USERNAME = os.getenv('AUTH_USERNAME', 'admin')
 AUTH_PASSWORD = os.getenv('AUTH_PASSWORD', 'changeme')
@@ -79,7 +83,12 @@ def get_location_from_ip(ip_address):
 # Database initialization
 def init_db():
     """Initialize the SQLite database and create locations table if it doesn't exist"""
-    with closing(sqlite3.connect('database.db')) as conn:
+    # Ensure database directory exists
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
+
+    with closing(sqlite3.connect(DATABASE_PATH)) as conn:
         with closing(conn.cursor()) as cursor:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS locations (
@@ -116,7 +125,7 @@ def init_db():
 
 def get_db_connection():
     """Get a database connection"""
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
