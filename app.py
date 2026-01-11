@@ -558,27 +558,6 @@ def update_day_note(date_str):
 
     return jsonify({'success': True})
 
-@app.route('/api/admin/import-sql', methods=['POST'])
-@auth.login_required
-def import_sql():
-    """Import SQL dump to restore database (admin only)"""
-    data = request.json
-    sql_dump = data.get('sql', '')
-
-    if not sql_dump:
-        return jsonify({'error': 'No SQL provided'}), 400
-
-    try:
-        conn = get_db_connection()
-        # Execute the SQL dump
-        conn.executescript(sql_dump)
-        conn.commit()
-        conn.close()
-
-        return jsonify({'success': True, 'message': 'Database imported successfully'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 # Initialize database on startup
 init_db()
 
