@@ -7,9 +7,9 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f5f5f5;
     min-height: 100vh;
-    padding: 20px;
+    padding: 12px;
     color: #333;
 }
 
@@ -21,110 +21,105 @@ body {
 /* Header */
 header {
     text-align: center;
-    margin-bottom: 30px;
-    color: white;
+    margin-bottom: 12px;
 }
 
 header h1 {
-    font-size: 2rem;
-    margin-bottom: 10px;
+    font-size: 1.4rem;
+    color: #333;
 }
 
 .date {
-    font-size: 1.1rem;
-    opacity: 0.9;
+    font-size: 0.9rem;
+    color: #666;
 }
 
 /* Day Selector */
 .day-selector-section {
-    margin-bottom: 30px;
+    margin-bottom: 12px;
 }
 
 .day-selector {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     overflow-x: auto;
-    padding: 4px;
+    padding: 2px;
     scrollbar-width: thin;
 }
 
 .day-selector::-webkit-scrollbar {
-    height: 6px;
+    height: 4px;
 }
 
 .day-selector::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
+    background: #ccc;
+    border-radius: 2px;
 }
 
 .day-button {
     flex: 0 0 auto;
-    min-width: 70px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 12px 8px;
-    border-radius: 12px;
+    min-width: 54px;
+    background: white;
+    border: 1px solid #ddd;
+    color: #666;
+    padding: 8px 6px;
+    border-radius: 8px;
     cursor: pointer;
     text-align: center;
-    transition: all 0.3s;
-    font-size: 0.85rem;
+    transition: all 0.2s;
+    font-size: 0.8rem;
 }
 
 .day-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-2px);
+    background: #f0f0f0;
+    border-color: #ccc;
 }
 
 .day-button.active {
-    background: white;
-    color: #667eea;
-    border-color: white;
+    background: #333;
+    color: white;
+    border-color: #333;
     font-weight: 600;
 }
 
 .day-button-weekday {
     font-weight: 600;
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
-    margin-bottom: 4px;
-    opacity: 0.9;
+    margin-bottom: 2px;
 }
 
 .day-button-date {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
 }
 
 .day-button-month {
-    font-size: 0.7rem;
-    margin-top: 2px;
-    opacity: 0.8;
+    font-size: 0.6rem;
+    margin-top: 1px;
+    opacity: 0.7;
 }
 
 /* Note Section */
 .note-section {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .day-note-input {
     width: 100%;
-    padding: 14px 16px;
-    font-size: 0.95rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    border: none;
-    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     background: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    resize: vertical;
+    resize: none;
     outline: none;
-    transition: box-shadow 0.3s;
-    min-height: 60px;
+    min-height: 40px;
 }
 
 .day-note-input:focus {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    border-color: #999;
 }
 
 .day-note-input::placeholder {
@@ -133,53 +128,47 @@ header h1 {
 
 /* Search Section */
 .search-section {
-    margin-bottom: 30px;
+    margin-bottom: 12px;
 }
 
 .search-container {
     position: relative;
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 #locationInput {
-    width: 100%;
     flex: 1;
-    padding: 16px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     outline: none;
-    transition: box-shadow 0.3s;
+    background: white;
 }
 
 #locationInput:focus {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    border-color: #999;
 }
 
 .search-button {
-    padding: 16px 24px;
-    font-size: 1rem;
+    padding: 10px 16px;
+    font-size: 0.9rem;
     font-weight: 600;
-    background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
-    border-radius: 12px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s;
-    white-space: nowrap;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background 0.2s;
 }
 
 .search-button:hover {
-    background: #667eea;
-    color: white;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background: #444;
 }
 
 .search-button:active {
-    transform: scale(0.98);
+    background: #222;
 }
 
 /* Autocomplete Dropdown */
@@ -189,10 +178,10 @@ header h1 {
     left: 0;
     right: 0;
     background: white;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    margin-top: 8px;
-    max-height: 300px;
+    margin-top: 4px;
+    max-height: 250px;
     overflow-y: auto;
     z-index: 1000;
 }
@@ -202,10 +191,10 @@ header h1 {
 }
 
 .autocomplete-item {
-    padding: 14px 16px;
+    padding: 10px 12px;
     cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.15s;
 }
 
 .autocomplete-item:last-child {
@@ -213,83 +202,85 @@ header h1 {
 }
 
 .autocomplete-item:hover {
-    background-color: #f8f9fa;
+    background-color: #f5f5f5;
 }
 
 .autocomplete-item-name {
     font-weight: 600;
     color: #333;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    font-size: 0.9rem;
 }
 
 .autocomplete-item-address {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #666;
 }
 
 .autocomplete-loading {
-    padding: 14px 16px;
+    padding: 12px;
     text-align: center;
     color: #666;
+    font-size: 0.85rem;
 }
 
 .autocomplete-error {
-    padding: 14px 16px;
+    padding: 12px;
     text-align: center;
-    color: #dc3545;
-    background: #ffe6e6;
-    font-weight: 500;
+    color: #c00;
+    background: #fee;
+    font-size: 0.85rem;
 }
 
 /* Distance Summary */
 .distance-summary {
     background: white;
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 8px;
+    padding: 16px;
     text-align: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
+    border: 1px solid #ddd;
+    margin-bottom: 12px;
 }
 
 .distance-value {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .distance-number {
-    font-size: 3rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    color: #667eea;
+    color: #333;
 }
 
 .distance-unit {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     color: #666;
-    margin-left: 8px;
+    margin-left: 4px;
 }
 
 .distance-label {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: 0.75rem;
+    color: #888;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 /* Map Section */
 .map-section {
-    margin-bottom: 30px;
+    margin-bottom: 12px;
 }
 
 .map-section h2 {
-    color: white;
-    font-size: 1.3rem;
-    margin-bottom: 16px;
+    color: #333;
+    font-size: 1rem;
+    margin-bottom: 8px;
 }
 
 .map-container {
     height: 400px;
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: 1px solid #ddd;
     overflow: hidden;
 }
 
@@ -298,35 +289,35 @@ header h1 {
     align-items: center;
     justify-content: center;
     color: #999;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 /* Locations Section */
 .locations-section h2 {
-    color: white;
-    font-size: 1.3rem;
-    margin-bottom: 16px;
+    color: #333;
+    font-size: 1rem;
+    margin-bottom: 8px;
 }
 
 .locations-list {
     background: white;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    min-height: 100px;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    min-height: 60px;
 }
 
 .locations-list.empty {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 24px 12px;
 }
 
 .empty-message {
     color: #999;
     text-align: center;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
 }
 
 /* Location Item */
@@ -334,11 +325,10 @@ header h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px;
-    border-radius: 12px;
-    background: #f8f9fa;
-    margin-bottom: 12px;
-    transition: all 0.2s;
+    padding: 10px;
+    border-radius: 6px;
+    background: #f8f8f8;
+    margin-bottom: 8px;
 }
 
 .location-item:last-child {
@@ -346,193 +336,175 @@ header h1 {
 }
 
 .location-item:hover {
-    background: #e9ecef;
+    background: #f0f0f0;
 }
 
 .location-info {
     flex: 1;
+    min-width: 0;
 }
 
 .location-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .location-number {
     display: inline-block;
-    width: 28px;
-    height: 28px;
-    background: #667eea;
+    width: 22px;
+    height: 22px;
+    background: #333;
     color: white;
     border-radius: 50%;
     text-align: center;
-    line-height: 28px;
+    line-height: 22px;
     font-weight: 600;
-    font-size: 0.85rem;
-    margin-right: 12px;
+    font-size: 0.75rem;
+    margin-right: 10px;
 }
 
 .location-name {
     font-weight: 600;
     color: #333;
-    margin-bottom: 4px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .location-address {
-    font-size: 0.85rem;
-    color: #666;
+    font-size: 0.75rem;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .break-btn {
-    background: #f8f9fa;
-    color: #667eea;
-    border: 2px solid #667eea;
-    padding: 10px 16px;
-    border-radius: 8px;
+    background: white;
+    color: #666;
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    transition: all 0.2s;
-    min-width: 44px;
-    min-height: 44px;
-    white-space: nowrap;
+    transition: all 0.15s;
 }
 
 .break-btn:hover {
-    background: #667eea;
-    color: white;
+    background: #f0f0f0;
+    border-color: #999;
 }
 
 .break-btn.active {
-    background: #667eea;
+    background: #333;
     color: white;
-}
-
-.break-btn:active {
-    transform: scale(0.98);
+    border-color: #333;
 }
 
 .break-indicator-line {
     text-align: center;
     color: #999;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    padding: 8px 0;
-    margin-bottom: 12px;
-    letter-spacing: 2px;
+    padding: 4px 0;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
 }
 
 .delete-btn {
-    background: #dc3545;
+    background: #e55;
     color: white;
     border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
+    padding: 6px 10px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    transition: background-color 0.2s;
-    min-width: 44px;
-    min-height: 44px;
+    transition: background 0.15s;
 }
 
 .delete-btn:hover {
-    background: #c82333;
-}
-
-.delete-btn:active {
-    transform: scale(0.98);
+    background: #d33;
 }
 
 /* Map Popup Styles */
 .map-popup-content {
-    min-width: 200px;
-    padding: 8px;
+    min-width: 180px;
+    padding: 4px;
 }
 
 .map-popup-name {
     font-weight: 600;
     color: #333;
-    margin-bottom: 6px;
-    font-size: 0.95rem;
+    margin-bottom: 4px;
+    font-size: 0.9rem;
 }
 
 .map-popup-address {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #666;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .map-popup-add-btn {
     width: 100%;
-    padding: 10px 16px;
-    background: #667eea;
+    padding: 8px 12px;
+    background: #333;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .map-popup-add-btn:hover {
-    background: #5568d3;
-}
-
-.map-popup-add-btn:active {
-    transform: scale(0.98);
+    background: #444;
 }
 
 .map-popup-loading {
-    padding: 12px;
+    padding: 10px;
     text-align: center;
     color: #666;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .map-popup-error {
-    padding: 12px;
+    padding: 10px;
     text-align: center;
-    color: #dc3545;
-    font-size: 0.9rem;
+    color: #c00;
+    font-size: 0.85rem;
 }
 
 /* Mobile Responsive */
 @media (max-width: 640px) {
     body {
-        padding: 16px;
+        padding: 8px;
     }
 
     header h1 {
-        font-size: 1.6rem;
-    }
-
-    .date {
-        font-size: 1rem;
-    }
-
-    .day-button {
-        min-width: 60px;
-        padding: 10px 6px;
-    }
-
-    .day-button-date {
-        font-size: 1rem;
-    }
-
-    .distance-number {
-        font-size: 2.5rem;
-    }
-
-    .distance-unit {
         font-size: 1.2rem;
     }
 
-    .search-button {
-        padding: 16px;
+    .day-button {
+        min-width: 48px;
+        padding: 6px 4px;
+    }
+
+    .day-button-date {
         font-size: 0.9rem;
+    }
+
+    .distance-number {
+        font-size: 1.8rem;
+    }
+
+    .distance-unit {
+        font-size: 1rem;
     }
 
     .map-container {
@@ -542,18 +514,16 @@ header h1 {
     .location-item {
         flex-direction: column;
         align-items: flex-start;
+        gap: 8px;
     }
 
     .location-actions {
-        margin-top: 12px;
         width: 100%;
     }
 
     .break-btn,
     .delete-btn {
         flex: 1;
-        font-size: 0.85rem;
-        padding: 10px 12px;
     }
 }
 
