@@ -6,7 +6,8 @@
       "Bash(curl:*)",
       "Bash(python3:*)",
       "Bash(cat:*)",
-      "Bash(uv pip install:*)"
+      "Bash(uv pip install:*)",
+      "Bash(python:*)"
     ]
   }
 }

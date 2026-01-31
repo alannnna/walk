@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSelectedDateDisplay();
     loadLocationsForDate(selectedDate);
     loadDayNote(selectedDate);
+    loadStatsSummary();
     setupEventListeners();
 });
 
@@ -321,6 +322,7 @@ async function addLocation(location) {
         if (result.success) {
             // Reload locations to get updated list and distance
             await loadLocationsForDate(selectedDate);
+            loadStatsSummary();
         }
     } catch (error) {
         console.error('Add location error:', error);
@@ -392,10 +394,13 @@ function displayLocations(locations) {
 }
 
 // Display total distance (convert km to miles)
+// Note: This updates the "Today" stat when viewing today's data
 function displayDistance(distanceKm) {
     const distanceElement = document.getElementById('totalDistance');
-    const distanceMiles = distanceKm * KM_TO_MILES;
-    distanceElement.textContent = distanceMiles.toFixed(2);
+    if (distanceElement) {
+        const distanceMiles = distanceKm * KM_TO_MILES;
+        distanceElement.textContent = distanceMiles.toFixed(2);
+    }
 }
 
 // Update map with locations and route segments
@@ -475,6 +480,7 @@ async function toggleBreakAfter(locationId, breakAfter) {
         if (result.success) {
             // Reload locations to get updated list and distance
             await loadLocationsForDate(selectedDate);
+            loadStatsSummary();
         }
     } catch (error) {
         console.error('Toggle break error:', error);
@@ -493,6 +499,7 @@ async function deleteLocation(locationId) {
         if (result.success) {
             // Reload locations to get updated list and distance
             await loadLocationsForDate(selectedDate);
+            loadStatsSummary();
         }
     } catch (error) {
         console.error('Delete location error:', error);
@@ -532,4 +539,19 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Load stats summary for the header
+async function loadStatsSummary() {
+    try {
+        const response = await fetch('/api/stats/summary');
+        const data = await response.json();
+
+        // Convert km to miles and display
+        document.getElementById('statToday').textContent = (data.today * KM_TO_MILES).toFixed(2);
+        document.getElementById('statThisWeek').textContent = (data.this_week * KM_TO_MILES).toFixed(2);
+        document.getElementById('statLastWeek').textContent = (data.last_week * KM_TO_MILES).toFixed(2);
+    } catch (error) {
+        console.error('Load stats summary error:', error);
+    }
 }

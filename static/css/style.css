@@ -232,37 +232,64 @@ header h1 {
     font-size: 0.85rem;
 }
 
-/* Distance Summary */
-.distance-summary {
+/* Stats Summary */
+.stats-summary {
     background: white;
     border-radius: 8px;
     padding: 16px;
-    text-align: center;
     border: 1px solid #ddd;
     margin-bottom: 12px;
 }
 
-.distance-value {
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     margin-bottom: 4px;
 }
 
-.distance-number {
-    font-size: 2.2rem;
+.stat-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+}
+
+.stat-number {
+    font-size: 1.5rem;
     font-weight: 700;
     color: #333;
 }
 
-.distance-unit {
-    font-size: 1.1rem;
+.stat-unit {
+    font-size: 0.85rem;
     color: #666;
-    margin-left: 4px;
 }
 
-.distance-label {
-    font-size: 0.75rem;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.stats-link {
+    display: block;
+    text-align: center;
+    color: #667eea;
+    font-size: 0.85rem;
+    text-decoration: none;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+}
+
+.stats-link:hover {
+    text-decoration: underline;
 }
 
 /* Map Section */
@@ -531,4 +558,122 @@ header h1 {
 .loading {
     opacity: 0.6;
     pointer-events: none;
+}
+
+/* Stats Page */
+.stats-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.stats-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.back-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.stats-header h1 {
+    font-size: 1.4rem;
+    color: #333;
+    margin: 0;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.summary-card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.summary-card-label {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Chart Sections */
+.chart-section {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #ddd;
+    margin-bottom: 16px;
+}
+
+.chart-section h2 {
+    font-size: 1rem;
+    color: #333;
+    margin: 0 0 16px 0;
+}
+
+.chart-container {
+    position: relative;
+    height: 250px;
+}
+
+/* Stats Footer */
+.stats-footer {
+    text-align: center;
+    color: #888;
+    font-size: 0.8rem;
+    padding: 16px 0;
+}
+
+/* Mobile Responsive - Stats Page */
+@media (max-width: 640px) {
+    .summary-cards {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .summary-card {
+        padding: 12px;
+    }
+
+    .summary-card-value {
+        font-size: 1.5rem;
+    }
+
+    .chart-container {
+        height: 200px;
+    }
+
+    .stat-number {
+        font-size: 1.2rem;
+    }
+
+    .stat-unit {
+        font-size: 0.75rem;
+    }
 }

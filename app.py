@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3
 import requests
-from datetime import date
+from datetime import date, timedelta
 from contextlib import closing
+from calendar import monthrange
 import os
 from dotenv import load_dotenv
 from flask_httpauth import HTTPBasicAuth
@@ -557,6 +558,194 @@ def update_day_note(date_str):
     conn.close()
 
     return jsonify({'success': True})
+
+
+# Stats helper functions
+def get_week_date_range(reference_date, weeks_ago=0):
+    """
+    Returns (monday, sunday) for a week relative to reference_date.
+    weeks_ago=0 means current week, weeks_ago=1 means last week, etc.
+    """
+    # Find Monday of the reference week
+    days_since_monday = reference_date.weekday()
+    monday = reference_date - timedelta(days=days_since_monday)
+
+    # Adjust for weeks_ago
+    monday = monday - timedelta(weeks=weeks_ago)
+    sunday = monday + timedelta(days=6)
+
+    return (monday, sunday)
+
+
+def get_month_date_range(reference_date, months_ago=0):
+    """
+    Returns (first_day, last_day) for a month relative to reference_date.
+    months_ago=0 means current month, months_ago=1 means last month, etc.
+    """
+    # Calculate target month/year
+    year = reference_date.year
+    month = reference_date.month - months_ago
+
+    # Handle year rollover
+    while month <= 0:
+        month += 12
+        year -= 1
+
+    first_day = date(year, month, 1)
+    last_day = date(year, month, monthrange(year, month)[1])
+
+    return (first_day, last_day)
+
+
+def calculate_distance_for_date_range(start_date, end_date):
+    """
+    Query DB, calculate route distances for all days in range, sum them.
+    Returns total distance in km.
+    """
+    conn = get_db_connection()
+
+    # Get all unique dates with locations in the range
+    dates_with_locations = conn.execute('''
+        SELECT DISTINCT date FROM locations
+        WHERE date >= ? AND date <= ?
+        ORDER BY date
+    ''', (start_date.isoformat(), end_date.isoformat())).fetchall()
+
+    total_distance = 0
+
+    for row in dates_with_locations:
+        date_str = row['date']
+
+        # Get locations for this date
+        locations = conn.execute(
+            'SELECT latitude, longitude, break_after FROM locations WHERE date = ? ORDER BY sequence_order',
+            (date_str,)
+        ).fetchall()
+
+        locations_list = [
+            {'latitude': loc['latitude'], 'longitude': loc['longitude'], 'break_after': loc['break_after']}
+            for loc in locations
+        ]
+
+        if len(locations_list) >= 2:
+            distance, _ = calculate_walking_distance_with_breaks(locations_list)
+            total_distance += distance
+
+    conn.close()
+    return total_distance
+
+
+@app.route('/api/stats/summary')
+@auth.login_required
+def get_stats_summary():
+    """Get summary stats: today, this week, last week distances"""
+    today = date.today()
+
+    # Today's distance
+    today_distance = calculate_distance_for_date_range(today, today)
+
+    # This week (Monday to Sunday)
+    this_week_start, this_week_end = get_week_date_range(today, 0)
+    this_week_distance = calculate_distance_for_date_range(this_week_start, this_week_end)
+
+    # Last week
+    last_week_start, last_week_end = get_week_date_range(today, 1)
+    last_week_distance = calculate_distance_for_date_range(last_week_start, last_week_end)
+
+    return jsonify({
+        'today': round(today_distance, 2),
+        'this_week': round(this_week_distance, 2),
+        'last_week': round(last_week_distance, 2)
+    })
+
+
+@app.route('/api/stats/detailed')
+@auth.login_required
+def get_stats_detailed():
+    """Get detailed stats for charts: last 30 days, 8 weeks, 6 months"""
+    today = date.today()
+
+    # Last 30 days (daily data)
+    daily_data = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        distance = calculate_distance_for_date_range(day, day)
+        daily_data.append({
+            'date': day.isoformat(),
+            'label': day.strftime('%b %d'),
+            'distance': round(distance, 2)
+        })
+
+    # Last 8 weeks (weekly data)
+    weekly_data = []
+    for i in range(7, -1, -1):
+        week_start, week_end = get_week_date_range(today, i)
+        distance = calculate_distance_for_date_range(week_start, week_end)
+        weekly_data.append({
+            'week_start': week_start.isoformat(),
+            'week_end': week_end.isoformat(),
+            'label': f"{week_start.strftime('%b %d')}",
+            'distance': round(distance, 2)
+        })
+
+    # Last 6 months (monthly data)
+    monthly_data = []
+    for i in range(5, -1, -1):
+        month_start, month_end = get_month_date_range(today, i)
+        distance = calculate_distance_for_date_range(month_start, month_end)
+        monthly_data.append({
+            'month_start': month_start.isoformat(),
+            'month_end': month_end.isoformat(),
+            'label': month_start.strftime('%b %Y'),
+            'distance': round(distance, 2)
+        })
+
+    # Calculate totals
+    conn = get_db_connection()
+
+    # Get all-time stats
+    all_dates = conn.execute('SELECT DISTINCT date FROM locations ORDER BY date').fetchall()
+    all_time_distance = 0
+    days_tracked = len(all_dates)
+
+    for row in all_dates:
+        date_str = row['date']
+        locations = conn.execute(
+            'SELECT latitude, longitude, break_after FROM locations WHERE date = ? ORDER BY sequence_order',
+            (date_str,)
+        ).fetchall()
+
+        locations_list = [
+            {'latitude': loc['latitude'], 'longitude': loc['longitude'], 'break_after': loc['break_after']}
+            for loc in locations
+        ]
+
+        if len(locations_list) >= 2:
+            distance, _ = calculate_walking_distance_with_breaks(locations_list)
+            all_time_distance += distance
+
+    conn.close()
+
+    daily_average = all_time_distance / days_tracked if days_tracked > 0 else 0
+
+    return jsonify({
+        'daily': daily_data,
+        'weekly': weekly_data,
+        'monthly': monthly_data,
+        'totals': {
+            'all_time_distance': round(all_time_distance, 2),
+            'days_tracked': days_tracked,
+            'daily_average': round(daily_average, 2)
+        }
+    })
+
+
+@app.route('/stats')
+@auth.login_required
+def stats_page():
+    """Serve the stats page"""
+    return render_template('stats.html')
+
 
 # Initialize database on startup
 init_db()
